@@ -27,7 +27,7 @@ export async function GET(
       );
     }
     
-    // Employees can only see their own data, admins and HR can see all
+    // Employees can only see their own data, admins can see all
     if (session.userType === 'EMPLOYEE' && session.userId !== employeeId) {
       return NextResponse.json(
         { error: 'Access denied' },
@@ -95,9 +95,9 @@ export async function PUT(
       );
     }
 
-    if (session.userType !== 'ADMIN' && session.userType !== 'HR') {
+    if (session.userType !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Admin or HR access only' },
+        { error: 'Admin access only' },
         { status: 403 }
       );
     }

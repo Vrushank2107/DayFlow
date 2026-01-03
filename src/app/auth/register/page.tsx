@@ -19,7 +19,6 @@ export default function RegisterPage() {
     name: "",
     email: "",
     phone: "",
-    department: "",
     password: "",
     confirmPassword: "",
     userType: "ADMIN", // Unified Admin/HR role
@@ -71,7 +70,6 @@ export default function RegisterPage() {
           name: adminData.name,
           email: adminData.email,
           phone: adminData.phone,
-          department: adminData.department,
           password: adminData.password,
           userType: adminData.userType,
         }),
@@ -155,14 +153,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="adminDepartment">Department (Optional)</Label>
-                <Input
-                  id="adminDepartment"
-                  type="text"
-                  value={adminData.department}
-                  onChange={(e) => setAdminData(prev => ({ ...prev, department: e.target.value }))}
-                  placeholder="e.g., Human Resources, IT, Finance"
-                />
+                {/* Empty space to maintain grid layout */}
               </div>
             </div>
 

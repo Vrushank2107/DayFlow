@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/loading-state";
-import { ArrowLeft, Calendar, DollarSign, Mail, MapPin, Phone, User, Building2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building, Calendar, MapPin, User, DollarSign, Clock, FileText } from "lucide-react";
 
 type Employee = {
   id: number;
@@ -25,46 +25,34 @@ type Employee = {
 };
 
 export default function EmployeeProfilePage() {
-  const { user, isAdmin, isHR } = useAuth();
+  const { user, isAdmin } = useAuth();
   const params = useParams();
   const router = useRouter();
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const employeeId = params.id as string;
 
   useEffect(() => {
-    if (employeeId) {
+    async function fetchEmployee() {
+      try {
+        const response = await fetch(`/api/employee/profile/${params.id}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setEmployee(data.employee);
+        } else {
+          console.error('Failed to fetch employee:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching employee:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (params.id) {
       fetchEmployee();
     }
-  }, [employeeId]);
-
-  async function fetchEmployee() {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/dashboard/employee/${employeeId}`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Employee not found");
-        } else if (response.status === 403) {
-          setError("Access denied");
-        } else {
-          setError("Failed to fetch employee data");
-        }
-        return;
-      }
-
-      const data = await response.json();
-      setEmployee(data);
-    } catch (error) {
-      console.error("Error fetching employee:", error);
-      setError("Failed to fetch employee data");
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  }, [params.id]);
 
   if (isLoading) {
     return (
@@ -74,26 +62,24 @@ export default function EmployeeProfilePage() {
     );
   }
 
-  if (error || !employee) {
+  if (!employee) {
     return (
       <AuthGuard requireAuth>
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" asChild>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+              Employee Not Found
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              The employee you're looking for doesn't exist.
+            </p>
+            <Button asChild>
               <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Employee
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
               </Link>
             </Button>
           </div>
-          
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <User className="h-12 w-12 text-zinc-400 mb-4" />
-              <p className="text-lg font-semibold mb-2">Error</p>
-              <p className="text-sm text-zinc-500">{error || "Employee not found"}</p>
-            </CardContent>
-          </Card>
         </div>
       </AuthGuard>
     );
@@ -107,9 +93,16 @@ export default function EmployeeProfilePage() {
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Employee
+              Back to Dashboard
             </Link>
           </Button>
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-500">Employee Profile</p>
+            <h1 className="text-3xl font-semibold">{employee.name}</h1>
+            <p className="text-sm text-zinc-500">
+              {employee.employeeId ? `ID: ${employee.employeeId}` : 'Employee Information'}
+            </p>
+          </div>
         </div>
 
         {/* Profile Content */}
@@ -117,33 +110,54 @@ export default function EmployeeProfilePage() {
           {/* Profile Card */}
           <div className="lg:col-span-1">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  {/* Profile Picture */}
-                  <div className="h-24 w-24 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-3xl font-semibold">
-                    {employee.name.charAt(0).toUpperCase()}
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  {employee.name}
+                </CardTitle>
+                <CardDescription>Employee Profile</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
                   </div>
-                  
                   <div className="space-y-1">
-                    <h1 className="text-2xl font-bold">{employee.name}</h1>
-                    {employee.designation && (
-                      <p className="text-lg text-zinc-600 dark:text-zinc-400">{employee.designation}</p>
-                    )}
-                    {employee.department && (
-                      <p className="text-sm text-zinc-500">{employee.department}</p>
-                    )}
+                    <p className="font-semibold text-lg">{employee.name}</p>
+                    <p className="text-sm text-zinc-500">{employee.designation || 'Employee'}</p>
                     {employee.employeeId && (
-                      <p className="text-xs text-zinc-400">ID: {employee.employeeId}</p>
+                      <p className="text-xs font-mono text-indigo-600 dark:text-indigo-400">
+                        {employee.employeeId}
+                      </p>
                     )}
                   </div>
+                </div>
 
-                  {(isAdmin || isHR) && (
-                    <Button asChild variant="outline" className="w-full">
-                      <Link href={`/dashboard/employee/${employee.id}/edit`}>
-                        Edit Profile
-                      </Link>
-                    </Button>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-zinc-400" />
+                    <span className="truncate">{employee.email}</span>
+                  </div>
+                  {employee.phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-zinc-400" />
+                      <span>{employee.phone}</span>
+                    </div>
                   )}
+                  {employee.department && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Building className="h-4 w-4 text-zinc-400" />
+                      <span>{employee.department}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                  <div className="text-center">
+                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                      Active
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -196,7 +210,7 @@ export default function EmployeeProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
+                  <Building className="h-5 w-5" />
                   Work Information
                 </CardTitle>
               </CardHeader>
@@ -205,7 +219,7 @@ export default function EmployeeProfilePage() {
                   {employee.department && (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm text-zinc-500">
-                        <Building2 className="h-4 w-4" />
+                        <Building className="h-4 w-4" />
                         Department
                       </div>
                       <p className="font-medium">{employee.department}</p>
@@ -251,17 +265,19 @@ export default function EmployeeProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>Manage employee-related information</CardDescription>
+                <CardDescription>Access related information</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2">
                   <Button asChild variant="outline">
                     <Link href={`/attendance?userId=${employee.id}`}>
+                      <Clock className="mr-2 h-4 w-4" />
                       View Attendance
                     </Link>
                   </Button>
                   <Button asChild variant="outline">
                     <Link href={`/leave?userId=${employee.id}`}>
+                      <FileText className="mr-2 h-4 w-4" />
                       View Leave Requests
                     </Link>
                   </Button>
@@ -271,13 +287,6 @@ export default function EmployeeProfilePage() {
                       View Payroll
                     </Link>
                   </Button>
-                  {(isAdmin || isHR) && (
-                    <Button asChild variant="outline">
-                      <Link href={`/dashboard/employee/${employee.id}/edit`}>
-                        Edit Employee
-                      </Link>
-                    </Button>
-                  )}
                 </div>
               </CardContent>
             </Card>
