@@ -146,7 +146,7 @@ export default function HRDashboardPage() {
                 </Link>
               </Button>
               <Button asChild className="flex items-center gap-2">
-                <Link href="/admin/employees/create">
+                <Link href="/admin/hr/employees/create">
                   <Plus className="h-4 w-4" />
                   Create Employee
                 </Link>
@@ -278,7 +278,7 @@ export default function HRDashboardPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Button asChild className="w-full justify-start" variant="outline">
-                    <Link href="/admin/employees/create" className="flex items-center gap-2">
+                    <Link href="/admin/hr/employees/create" className="flex items-center gap-2">
                       <Plus className="h-4 w-4" />
                       Create New Employee
                     </Link>
@@ -318,7 +318,7 @@ export default function HRDashboardPage() {
                     <Users className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
                     <p className="text-zinc-500 mb-4">No employees found</p>
                     <Button asChild className="flex items-center gap-2">
-                      <Link href="/admin/employees/create">
+                      <Link href="/admin/hr/employees/create">
                         <Plus className="h-4 w-4" />
                         Create Your First Employee
                       </Link>

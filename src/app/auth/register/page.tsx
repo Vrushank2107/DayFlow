@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserCheck, Shield, Check, X, Eye, EyeOff } from "lucide-react";
 
@@ -20,9 +19,10 @@ export default function RegisterPage() {
     name: "",
     email: "",
     phone: "",
+    department: "",
     password: "",
     confirmPassword: "",
-    userType: "ADMIN", // Can be ADMIN or HR
+    userType: "ADMIN", // Unified Admin/HR role
   });
 
   // Password visibility states
@@ -71,6 +71,7 @@ export default function RegisterPage() {
           name: adminData.name,
           email: adminData.email,
           phone: adminData.phone,
+          department: adminData.department,
           password: adminData.password,
           userType: adminData.userType,
         }),
@@ -100,7 +101,7 @@ export default function RegisterPage() {
         <p className="text-xs uppercase tracking-[0.4em] text-indigo-500">Registration</p>
         <h1 className="text-3xl font-semibold sm:text-4xl">Admin Registration</h1>
         <p className="text-sm text-zinc-500 sm:text-base">
-          Register as an Administrator or HR personnel
+          Register as an Administrator with HR capabilities
         </p>
       </div>
 
@@ -108,37 +109,14 @@ export default function RegisterPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserCheck className="h-5 w-5" />
-            Admin/HR Registration
+            Admin Registration
           </CardTitle>
           <CardDescription>
-            Register as an Admin or HR user with system management access
+            Register as an Admin user with full system management and HR capabilities
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAdminRegistration} className="space-y-6">
-            {/* User Type Selection - Moved to top with more spacing */}
-            <div className="space-y-2 relative">
-              <Label htmlFor="userType">User Type</Label>
-              <Select value={adminData.userType} onValueChange={(value: "ADMIN" | "HR") => setAdminData(prev => ({ ...prev, userType: value }))}>
-                <SelectTrigger className="w-full h-10 text-sm">
-                  <SelectValue placeholder="Select user type" />
-                </SelectTrigger>
-                <SelectContent className="z-[100] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg">
-                  <SelectItem value="ADMIN" className="py-2">
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-3 w-3 text-blue-600" />
-                      <span className="text-sm">Administrator</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="HR" className="py-2">
-                    <div className="flex items-center gap-2">
-                      <UserCheck className="h-3 w-3 text-green-600" />
-                      <span className="text-sm">HR Personnel</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -177,7 +155,14 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                {/* Empty space to maintain grid layout */}
+                <Label htmlFor="adminDepartment">Department (Optional)</Label>
+                <Input
+                  id="adminDepartment"
+                  type="text"
+                  value={adminData.department}
+                  onChange={(e) => setAdminData(prev => ({ ...prev, department: e.target.value }))}
+                  placeholder="e.g., Human Resources, IT, Finance"
+                />
               </div>
             </div>
 
@@ -308,16 +293,14 @@ export default function RegisterPage() {
                 <div className="text-sm">
                   <p className="font-medium text-blue-900 dark:text-blue-100">System Access</p>
                   <p className="text-blue-700 dark:text-blue-300">
-                    {adminData.userType === 'ADMIN' 
-                      ? 'Admin users have full system access including employee management, payroll, and system settings.'
-                      : 'HR users can manage employees, leave requests, and view reports.'}
+                    Admin users have full system access including employee management, payroll, HR functions, and system settings.
                   </p>
                 </div>
               </div>
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Registering..." : `Register as ${adminData.userType}`}
+              {isLoading ? "Registering..." : "Register as Admin"}
             </Button>
           </form>
         </CardContent>

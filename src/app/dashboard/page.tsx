@@ -132,7 +132,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-zinc-500">View and manage all employees.</p>
               </div>
               <Button asChild className="flex items-center gap-2">
-                <Link href="/admin/employees/create">
+                <Link href="/admin/hr/employees/create">
                   <Plus className="h-4 w-4" />
                   Create Employee
                 </Link>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
                     <p className="text-lg font-semibold mb-2">No employees found</p>
                     <p className="text-sm text-zinc-500 mb-6">No employees have been registered yet.</p>
                     <Button asChild className="flex items-center gap-2">
-                      <Link href="/admin/employees/create">
+                      <Link href="/admin/hr/employees/create">
                         <Plus className="h-4 w-4" />
                         Create Your First Employee
                       </Link>

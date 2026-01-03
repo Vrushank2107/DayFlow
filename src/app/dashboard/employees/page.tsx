@@ -93,7 +93,7 @@ export default function EmployeesListPage() {
               </p>
             </div>
             <Button asChild className="flex items-center gap-2">
-              <Link href="/admin/employees/create">
+              <Link href="/admin/hr/employees/create">
                 <Plus className="h-4 w-4" />
                 Create Employee
               </Link>
@@ -140,7 +140,7 @@ export default function EmployeesListPage() {
                   </p>
                   {!searchTerm && (
                     <Button asChild className="flex items-center gap-2">
-                      <Link href="/admin/employees/create">
+                      <Link href="/admin/hr/employees/create">
                         <Plus className="h-4 w-4" />
                         Create Your First Employee
                       </Link>

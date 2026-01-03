@@ -169,7 +169,7 @@ export default function EmployeesPage() {
           </div>
           {(isAdmin || isHR) && (
             <Button asChild>
-              <Link href="/admin/employees/create">
+              <Link href="/admin/hr/employees/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Employee
               </Link>
@@ -259,7 +259,7 @@ export default function EmployeesPage() {
                     </p>
                     {!searchTerm && (isAdmin || isHR) && (
                       <Button asChild className="mt-4">
-                        <Link href="/admin/employees/create">
+                        <Link href="/admin/hr/employees/create">
                           <Plus className="mr-2 h-4 w-4" />
                           Add First Employee
                         </Link>

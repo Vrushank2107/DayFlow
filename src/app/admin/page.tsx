@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href="/admin/employees">
+                    <Link href="/admin/hr/employees">
                       Manage Employees
                     </Link>
                   </Button>

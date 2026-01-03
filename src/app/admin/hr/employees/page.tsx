@@ -24,7 +24,7 @@ type Employee = {
   createdAt: string;
 };
 
-export default function EmployeesPage() {
+export default function HREmployeesPage() {
   const { user } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,12 +88,12 @@ export default function EmployeesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-indigo-500">Employee Management</p>
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-500">HR Employee Management</p>
             <h1 className="text-3xl font-semibold">Employees</h1>
             <p className="text-sm text-zinc-500">View and manage all employees in the organization.</p>
           </div>
           <Button asChild>
-            <Link href="/admin/employees/create">
+            <Link href="/admin/hr/employees/create">
               <Plus className="mr-2 h-4 w-4" />
               Add Employee
             </Link>
