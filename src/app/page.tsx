@@ -56,7 +56,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <Button size="lg" className="min-w-[180px] h-12 text-base" asChild>
                   <Link href={isAdmin ? "/admin" : "/dashboard"}>
-                    {isAdmin ? "Admin Dashboard" : "My Dashboard"}
+                    {isAdmin ? "Admin Dashboard" : "Employee Section"}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

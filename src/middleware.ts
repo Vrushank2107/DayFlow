@@ -12,8 +12,9 @@ const publicRoutes = [
 
 // Routes that are Admin-only
 const adminOnlyRoutes = [
-  '/admin',
   '/employees',
+  '/api/employees',
+  '/api/payroll',
 ];
 
 // Routes that are Employee-only (if any)

@@ -5,9 +5,12 @@ import { database } from '@/lib/db';
 // GET /api/attendance - Get attendance records
 export async function GET(request: Request) {
   try {
+    console.log('GET /api/attendance - Starting request');
     const session = await getSession();
+    console.log('Session:', session);
     
     if (!session) {
+      console.log('No session found');
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -33,29 +36,38 @@ export async function GET(request: Request) {
 
     let query = `
       SELECT 
-        attendance_id,
-        user_id,
-        date,
-        check_in,
-        check_out,
-        status,
-        created_at,
-        updated_at
+        attendance.attendance_id,
+        attendance.user_id,
+        attendance.date,
+        attendance.check_in,
+        attendance.check_out,
+        attendance.status,
+        attendance.created_at,
+        attendance.updated_at,
+        users.name as employeeName,
+        users.email as employeeEmail
       FROM attendance
-      WHERE user_id = ?
+      LEFT JOIN users ON attendance.user_id = users.user_id
+      WHERE 1=1
     `;
-    const params: unknown[] = [targetUserId];
+    const params: unknown[] = [];
+
+    // For admins, if no specific userId is provided, get all records
+    if (session.userType !== 'ADMIN' || userId) {
+      query += ' AND attendance.user_id = ?';
+      params.push(targetUserId);
+    }
 
     if (startDate) {
-      query += ' AND date >= ?';
+      query += ' AND attendance.date >= ?';
       params.push(startDate);
     }
     if (endDate) {
-      query += ' AND date <= ?';
+      query += ' AND attendance.date <= ?';
       params.push(endDate);
     }
 
-    query += ' ORDER BY date DESC LIMIT 100';
+    query += ' ORDER BY attendance.date DESC LIMIT 100';
 
     const records = database.prepare(query).all(...params) as Array<{
       attendance_id: number;
@@ -66,6 +78,8 @@ export async function GET(request: Request) {
       status: string;
       created_at: string;
       updated_at: string;
+      employeeName: string;
+      employeeEmail: string;
     }>;
 
     return NextResponse.json({
@@ -78,6 +92,8 @@ export async function GET(request: Request) {
         status: record.status,
         createdAt: record.created_at,
         updatedAt: record.updated_at,
+        employeeName: record.employeeName,
+        employeeEmail: record.employeeEmail,
       })),
     });
   } catch (error) {
@@ -92,9 +108,12 @@ export async function GET(request: Request) {
 // POST /api/attendance - Check in or check out
 export async function POST(request: Request) {
   try {
+    console.log('POST /api/attendance - Starting request');
     const session = await getSession();
+    console.log('Session:', session);
     
     if (!session) {
+      console.log('No session found');
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -109,7 +128,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    console.log('Request body:', body);
     const { action } = body; // 'checkin' or 'checkout'
+    console.log('Action:', action);
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
 
@@ -124,6 +145,15 @@ export async function POST(request: Request) {
     } | undefined;
 
     if (action === 'checkin') {
+      // Check business hours (9 AM - 6 PM) - Temporarily disabled for testing
+      // const currentHour = new Date().getHours();
+      // if (currentHour < 9 || currentHour > 18) {
+      //   return NextResponse.json(
+      //     { error: 'Check-in is only allowed between 9 AM and 6 PM' },
+      //     { status: 400 }
+      //   );
+      // }
+
       if (existing) {
         if (existing.check_in) {
           return NextResponse.json(
@@ -157,11 +187,25 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      database.prepare(`
-        UPDATE attendance
-        SET check_out = ?, updated_at = ?
-        WHERE attendance_id = ?
-      `).run(now, now, existing.attendance_id);
+
+      // Check minimum work hours (at least 4 hours)
+      const checkInTime = new Date(existing.check_in);
+      const currentTime = new Date();
+      const hoursWorked = (currentTime.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursWorked < 4) {
+        database.prepare(`
+          UPDATE attendance
+          SET check_out = ?, status = 'Half-day', updated_at = ?
+          WHERE attendance_id = ?
+        `).run(now, now, existing.attendance_id);
+      } else {
+        database.prepare(`
+          UPDATE attendance
+          SET check_out = ?, updated_at = ?
+          WHERE attendance_id = ?
+        `).run(now, now, existing.attendance_id);
+      }
     } else {
       return NextResponse.json(
         { error: 'Invalid action. Use "checkin" or "checkout"' },

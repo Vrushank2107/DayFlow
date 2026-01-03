@@ -16,25 +16,28 @@ export async function POST(request: Request) {
       );
     }
     
-    const { email, password } = body;
+    const { email, loginId, password } = body;
 
-    if (!email || !password) {
+    const loginIdentifier = email || loginId;
+
+    if (!loginIdentifier || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email/Login ID and password are required' },
         { status: 400 }
       );
     }
 
-    // Find user by email
+    // Find user by email or login ID
     const user = database.prepare(`
-      SELECT * FROM users WHERE email = ?
-    `).get(email) as {
+      SELECT * FROM users WHERE email = ? OR employee_id = ?
+    `).get(loginIdentifier, loginIdentifier) as {
       user_id: number;
       name: string;
       email: string;
       password: string | null;
       phone: string | null;
       user_type: 'EMPLOYEE' | 'ADMIN';
+      employee_id: string | null;
       created_at: string;
     } | undefined;
 
@@ -73,6 +76,7 @@ export async function POST(request: Request) {
         email: user.email,
         userType: user.user_type,
       },
+      redirectUrl: '/',
     });
   } catch (error) {
     console.error('Login error:', error);

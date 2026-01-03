@@ -6,7 +6,7 @@ export type User = {
   id: number;
   name: string;
   email: string;
-  userType: "EMPLOYEE" | "ADMIN";
+  userType: "EMPLOYEE" | "ADMIN" | "HR";
   phone?: string | null;
 };
 
@@ -21,10 +21,20 @@ export function useAuth() {
     const handleFocus = () => {
       checkAuth();
     };
+    
+    // Also check auth when page becomes visible again
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkAuth();
+      }
+    };
+    
     window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     return () => {
       window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -41,7 +51,7 @@ export function useAuth() {
       } else {
         setUser(null);
       }
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -63,7 +73,9 @@ export function useAuth() {
     isLoading,
     isAuthenticated: !!user,
     isEmployee: user?.userType === "EMPLOYEE",
-    isAdmin: user?.userType === "ADMIN",
+    isAdmin: user?.userType === "ADMIN" || user?.userType === "HR", // Unified role
+    isHR: user?.userType === "ADMIN" || user?.userType === "HR", // Unified role
+    isUnifiedAdmin: user?.userType === "ADMIN" || user?.userType === "HR", // New unified role
     logout,
     refresh: checkAuth,
   };

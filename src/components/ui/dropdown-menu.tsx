@@ -60,7 +60,7 @@ export function DropdownMenu({ children, trigger, align = "right", onClose }: Dr
               }
               // Clone valid elements and add onClose prop
               if (React.isValidElement(child) && typeof child.type !== 'string') {
-                return React.cloneElement(child as React.ReactElement<any>, {
+                return React.cloneElement(child as React.ReactElement<DropdownMenuItemProps>, {
                   onClose: closeMenu,
                 });
               }

@@ -12,8 +12,9 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
-  const [email, setEmail] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+  const [loginType, setLoginType] = useState<"email" | "loginId">("email");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -24,7 +25,10 @@ export default function LoginPage() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          [loginType]: loginType === "email" ? loginId : loginId,
+          password 
+        }),
       });
 
       const data = await response.json();
@@ -35,7 +39,9 @@ export default function LoginPage() {
       }
 
       toast.success("Login successful");
-      router.push(redirect);
+      
+      // Force a full page redirect to ensure auth state is refreshed
+      window.location.href = data.redirectUrl || '/';
     } catch (error) {
       toast.error("An error occurred. Please try again.");
     } finally {
@@ -53,15 +59,43 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
+          <label className="text-sm font-medium">Login Type</label>
+          <div className="flex space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="email"
+                checked={loginType === "email"}
+                onChange={(e) => setLoginType(e.target.value as "email")}
+                className="mr-2"
+                disabled={isLoading}
+              />
+              Email
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="loginId"
+                checked={loginType === "loginId"}
+                onChange={(e) => setLoginType(e.target.value as "loginId")}
+                className="mr-2"
+                disabled={isLoading}
+              />
+              Login ID
+            </label>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor={loginType} className="text-sm font-medium">
+            {loginType === "email" ? "Email" : "Login ID"}
           </label>
           <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id={loginType}
+            type={loginType === "email" ? "email" : "text"}
+            placeholder={loginType === "email" ? "you@example.com" : "e.g., OITODO20220001"}
+            value={loginId}
+            onChange={(e) => setLoginId(e.target.value)}
             required
             disabled={isLoading}
           />

@@ -19,6 +19,8 @@ type AttendanceRecord = {
   status: string;
   createdAt: string;
   updatedAt: string;
+  employeeName?: string;
+  employeeEmail?: string;
 };
 
 export default function AttendancePage() {
@@ -34,6 +36,11 @@ export default function AttendancePage() {
   useEffect(() => {
     fetchAttendance();
   }, []);
+
+  // Debug logging when todayRecord changes
+  useEffect(() => {
+    console.log('todayRecord changed:', todayRecord);
+  }, [todayRecord]);
 
   async function fetchAttendance() {
     try {
@@ -51,15 +58,21 @@ export default function AttendancePage() {
       weekStart.setHours(0, 0, 0, 0);
       const weekStartStr = weekStart.toISOString().split('T')[0];
 
+      console.log('Fetching attendance for dates:', { startDate, today, weekStartStr });
+
       const response = await fetch(
         `/api/attendance?startDate=${startDate}&endDate=${today}`
       );
+      console.log('Attendance response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Attendance data:', data);
         const records = data.records || [];
         
         // Find today's record
         const todayRecord = records.find((r: AttendanceRecord) => r.date === today);
+        console.log('Today record:', todayRecord); // Debug log
         setTodayRecord(todayRecord || null);
         
         // Get recent records (last 7 days)
@@ -73,9 +86,14 @@ export default function AttendancePage() {
           const weeklyResult = await weeklyData.json();
           setWeeklyRecords(weeklyResult.records || []);
         }
+      } else {
+        const errorData = await response.json();
+        console.error('Attendance API error:', errorData);
+        toast.error(errorData.error || "Failed to fetch attendance");
       }
     } catch (error) {
       console.error("Error fetching attendance:", error);
+      toast.error("Failed to fetch attendance");
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +110,32 @@ export default function AttendancePage() {
 
       if (response.ok) {
         toast.success("Checked in successfully!");
-        fetchAttendance();
+        
+        // Immediately update local state to show checkout button
+        const now = new Date().toISOString();
+        const today = new Date().toISOString().split('T')[0];
+        
+        setTodayRecord(prev => {
+          if (prev) {
+            return { ...prev, checkIn: now };
+          } else {
+            return {
+              id: 0,
+              userId: user?.id || 0,
+              date: today,
+              checkIn: now,
+              checkOut: null,
+              status: 'Present',
+              createdAt: now,
+              updatedAt: now
+            };
+          }
+        });
+        
+        // Then refresh the full data
+        setTimeout(() => {
+          fetchAttendance();
+        }, 500);
       } else {
         const error = await response.json();
         toast.error(error.error || "Failed to check in");
@@ -115,7 +158,10 @@ export default function AttendancePage() {
 
       if (response.ok) {
         toast.success("Checked out successfully!");
-        fetchAttendance();
+        // Add a small delay to ensure database is updated
+        setTimeout(() => {
+          fetchAttendance();
+        }, 500);
       } else {
         const error = await response.json();
         toast.error(error.error || "Failed to check out");
@@ -257,6 +303,11 @@ export default function AttendancePage() {
                             Check Out
                           </Button>
                         )}
+                        {todayRecord.checkOut && (
+                          <div className="flex-1 text-center py-2 px-4 bg-green-100 text-green-800 rounded-md font-medium">
+                            ✓ Completed for today
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -312,7 +363,10 @@ export default function AttendancePage() {
                         <div className="flex items-center gap-3">
                           {getStatusIcon(record.status)}
                           <div>
-                            <p className="font-medium">
+                            {isAdmin && record.employeeName && (
+                              <p className="font-medium">{record.employeeName}</p>
+                            )}
+                            <p className={`text-sm ${isAdmin && record.employeeName ? 'text-zinc-500' : 'font-medium'}`}>
                               {new Date(record.date).toLocaleDateString('en-US', {
                                 weekday: 'short',
                                 month: 'short',

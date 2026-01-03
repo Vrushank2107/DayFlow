@@ -10,7 +10,7 @@ import { Users, Calendar, DollarSign, Clock, FileText, TrendingUp } from "lucide
 import { Button } from "@/components/ui/button";
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
+  const { user, isAdmin, isHR } = useAuth();
   const [stats, setStats] = useState({
     totalEmployees: 0,
     pendingLeaves: 0,
@@ -52,6 +52,22 @@ export default function AdminDashboardPage() {
     }
   }
 
+  // Check if user has unified admin access (after all hooks)
+  if (!isAdmin && !isHR) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            Access Denied
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            You don't have permission to access this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthGuard requireAuth requireAdmin>
       <div className="space-y-6">
@@ -60,7 +76,7 @@ export default function AdminDashboardPage() {
           <h1 className="text-3xl font-semibold">
             Welcome back, {user?.name || "Admin"}!
           </h1>
-          <p className="text-sm text-zinc-500">Manage your workforce and HR operations.</p>
+          <p className="text-sm text-zinc-500">Manage employees, attendance, leave requests, and payroll.</p>
         </div>
 
         {isLoading ? (
@@ -122,47 +138,53 @@ export default function AdminDashboardPage() {
               </Card>
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Card className="group hover:border-indigo-300 dark:hover:border-indigo-700">
-                <CardHeader>
-                  <CardTitle className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Employees</CardTitle>
+            {/* Admin Management Cards */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="group hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-200 hover:shadow-lg">
+                <CardHeader className="text-center">
+                  <div className="mx-auto h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-3">
+                    <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <CardTitle className="text-lg">Employees</CardTitle>
                   <CardDescription>View and manage all employees</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button asChild variant="outline" className="w-full">
-                    <Link href="/employees">
-                      <Users className="mr-2 h-4 w-4" />
+                    <Link href="/admin/employees">
                       Manage Employees
                     </Link>
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="group hover:border-indigo-300 dark:hover:border-indigo-700">
-                <CardHeader>
-                  <CardTitle className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Leave Requests</CardTitle>
+              <Card className="group hover:border-amber-300 dark:hover:border-amber-700 transition-all duration-200 hover:shadow-lg">
+                <CardHeader className="text-center">
+                  <div className="mx-auto h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-3">
+                    <Calendar className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <CardTitle className="text-lg">Leave Requests</CardTitle>
                   <CardDescription>Approve or reject leave requests</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button asChild variant="outline" className="w-full">
                     <Link href="/leave">
-                      <Calendar className="mr-2 h-4 w-4" />
                       Manage Leaves
                     </Link>
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="group hover:border-indigo-300 dark:hover:border-indigo-700">
-                <CardHeader>
-                  <CardTitle className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Attendance</CardTitle>
+              <Card className="group hover:border-green-300 dark:hover:border-green-700 transition-all duration-200 hover:shadow-lg">
+                <CardHeader className="text-center">
+                  <div className="mx-auto h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-3">
+                    <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <CardTitle className="text-lg">Attendance</CardTitle>
                   <CardDescription>View all attendance records</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button asChild variant="outline" className="w-full">
                     <Link href="/attendance">
-                      <Clock className="mr-2 h-4 w-4" />
                       View Attendance
                     </Link>
                   </Button>

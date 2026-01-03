@@ -13,6 +13,7 @@ type AuthGuardProps = {
   children: React.ReactNode;
   requireAuth?: boolean;
   requireAdmin?: boolean;
+  requireHR?: boolean;
   requireEmployee?: boolean;
   redirectTo?: string;
 };
@@ -21,10 +22,11 @@ export function AuthGuard({
   children,
   requireAuth = false,
   requireAdmin = false,
+  requireHR = false,
   requireEmployee = false,
   redirectTo,
 }: AuthGuardProps) {
-  const { user, isLoading, isAuthenticated, isEmployee, isAdmin } = useAuth();
+  const { user, isLoading, isAuthenticated, isEmployee, isAdmin, isHR } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -71,25 +73,27 @@ export function AuthGuard({
     );
   }
 
-  // Require Admin but user is Employee
-  if (requireAdmin && isEmployee) {
+  // Require Admin/HR but user is neither Admin nor HR (unified access)
+  if (requireAdmin && !isAdmin && !isHR) {
     return (
       <div className="space-y-6">
         <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
               <Building2 className="h-5 w-5" />
-              Admin account required
+              Admin/HR account required
             </CardTitle>
             <CardDescription className="text-amber-700 dark:text-amber-300">
-              This page is only available for admin accounts. Please contact your administrator to access this feature.
+              This page is only available for admin and HR accounts. Please contact your administrator to access this feature.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-3">
-              <Button asChild variant="outline">
-                <Link href="/dashboard">View Employee Dashboard</Link>
-              </Button>
+              {isEmployee && (
+                <Button asChild variant="outline">
+                  <Link href="/dashboard">View Employee Section</Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -97,8 +101,41 @@ export function AuthGuard({
     );
   }
 
-  // Require Employee but user is Admin
-  if (requireEmployee && isAdmin) {
+  // Require HR but user is not HR
+  if (requireHR && !isHR) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-100">
+              <Building2 className="h-5 w-5" />
+              HR account required
+            </CardTitle>
+            <CardDescription className="text-amber-700 dark:text-amber-300">
+              This page is only available for HR accounts. Please contact your HR department to access this feature.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-3">
+              {isAdmin && (
+                <Button asChild variant="outline">
+                  <Link href="/admin">View Admin Dashboard</Link>
+                </Button>
+              )}
+              {isEmployee && (
+                <Button asChild variant="outline">
+                  <Link href="/dashboard">View Employee Section</Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Require Employee but user is not Employee
+  if (requireEmployee && !isEmployee) {
     return (
       <div className="space-y-6">
         <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/50">
@@ -113,9 +150,16 @@ export function AuthGuard({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-3">
-              <Button asChild variant="outline">
-                <Link href="/admin">View Admin Dashboard</Link>
-              </Button>
+              {isAdmin && (
+                <Button asChild variant="outline">
+                  <Link href="/admin">View Admin Dashboard</Link>
+                </Button>
+              )}
+              {isHR && (
+                <Button asChild variant="outline">
+                  <Link href="/hr">View HR Dashboard</Link>
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

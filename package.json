@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-tabs": "^1.1.13",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^11.7.0",
     "class-variance-authority": "^0.7.1",
@@ -30,7 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
-    "baseline-browser-mapping": "^2.8.32",
+    "baseline-browser-mapping": "^2.9.11",
     "eslint": "^9",
     "eslint-config-next": "16.0.5",
     "tailwindcss": "^4",
@@ -39,7 +42,13 @@
   },
   "description": "**Dayflow** is a modern Human Resource Management System (HRMS) built with Next.js. It provides employee management, attendance tracking, leave management, and payroll features.",
   "main": "index.js",
-  "keywords": ["hrms", "human-resources", "attendance", "leave-management", "payroll"],
+  "keywords": [
+    "hrms",
+    "human-resources",
+    "attendance",
+    "leave-management",
+    "payroll"
+  ],
   "author": "",
   "license": "ISC"
 }

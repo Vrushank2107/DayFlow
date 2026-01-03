@@ -38,7 +38,7 @@ function initializeSchema() {
       email TEXT UNIQUE NOT NULL,
       password TEXT,
       phone TEXT,
-      user_type TEXT NOT NULL CHECK(user_type IN ('EMPLOYEE', 'ADMIN')),
+      user_type TEXT NOT NULL CHECK(user_type IN ('EMPLOYEE', 'ADMIN', 'HR')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       employee_id TEXT UNIQUE,
       department TEXT,
@@ -53,41 +53,118 @@ function initializeSchema() {
   try {
     database.exec(`UPDATE users SET user_type = 'EMPLOYEE' WHERE user_type = 'CANDIDATE'`);
     database.exec(`UPDATE users SET user_type = 'ADMIN' WHERE user_type = 'SME'`);
-  } catch (error) {
+  } catch {
     // Ignore if column doesn't exist yet
+  }
+
+  // Simple migration for HR support - just update the constraint if needed
+  try {
+    // Check if HR is already supported by trying to insert a test value
+    database.exec(`BEGIN TRANSACTION`);
+    const stmt = database.prepare(`INSERT OR ROLLBACK INTO users (name, email, user_type) VALUES ('test', 'test@test.com', 'HR')`);
+    try {
+      stmt.run();
+      database.exec(`DELETE FROM users WHERE email = 'test@test.com'`);
+    } catch {
+      // If HR is not supported, we need to recreate the table
+      database.exec(`ROLLBACK`);
+      
+      // Create new table with HR support
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS users_new (
+          user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          email TEXT UNIQUE NOT NULL,
+          password TEXT,
+          phone TEXT,
+          user_type TEXT NOT NULL CHECK(user_type IN ('EMPLOYEE', 'ADMIN', 'HR')),
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          employee_id TEXT UNIQUE,
+          department TEXT,
+          designation TEXT,
+          joining_date DATE,
+          salary REAL,
+          address TEXT
+        )
+      `);
+      
+      // Copy data from old table
+      database.exec(`
+        INSERT INTO users_new (user_id, name, email, password, phone, user_type, created_at, employee_id, department, designation, joining_date, salary, address)
+        SELECT user_id, name, email, password, phone, user_type, created_at, employee_id, department, designation, joining_date, salary, address
+        FROM users
+      `);
+      
+      // Drop old table and rename new one
+      database.exec(`DROP TABLE users`);
+      database.exec(`ALTER TABLE users_new RENAME TO users`);
+    }
+    database.exec(`COMMIT`);
+  } catch {
+    // Ignore any errors during migration
   }
 
   // Add employee columns if they don't exist
   try {
     database.exec(`ALTER TABLE users ADD COLUMN employee_id TEXT UNIQUE`);
-  } catch (error) {
+  } catch {
     // Column already exists
   }
   try {
     database.exec(`ALTER TABLE users ADD COLUMN department TEXT`);
-  } catch (error) {
+  } catch {
     // Column already exists
   }
   try {
     database.exec(`ALTER TABLE users ADD COLUMN designation TEXT`);
-  } catch (error) {
+  } catch {
     // Column already exists
   }
   try {
     database.exec(`ALTER TABLE users ADD COLUMN joining_date DATE`);
-  } catch (error) {
+  } catch {
     // Column already exists
   }
   try {
     database.exec(`ALTER TABLE users ADD COLUMN salary REAL`);
-  } catch (error) {
+  } catch {
     // Column already exists
   }
   try {
     database.exec(`ALTER TABLE users ADD COLUMN address TEXT`);
-  } catch (error) {
+  } catch {
     // Column already exists
   }
+
+  // Create salary_components table
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS salary_components (
+      component_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      component_name TEXT NOT NULL,
+      component_type TEXT NOT NULL CHECK(component_type IN ('Basic', 'HRA', 'Standard Allowance', 'Performance Bonus', 'LTA', 'Fixed Allowance')),
+      computation_type TEXT NOT NULL CHECK(computation_type IN ('Fixed Amount', 'Percentage of Wage', 'Percentage of Basic')),
+      value REAL NOT NULL,
+      amount REAL NOT NULL,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    )
+  `);
+
+  // Create company_settings table
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS company_settings (
+      setting_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      company_name TEXT NOT NULL,
+      company_logo TEXT,
+      pf_rate REAL DEFAULT 12.0,
+      professional_tax REAL DEFAULT 200.0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
   // Create attendance table
   database.exec(`
@@ -172,6 +249,7 @@ function initializeSchema() {
 
 // Export database instance
 export const database = getDb();
+export { getDb };
 
 // Test database connection
 export async function testConnection(): Promise<boolean> {

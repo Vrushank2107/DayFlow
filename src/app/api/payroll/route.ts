@@ -43,9 +43,15 @@ export async function GET(request: Request) {
         created_at,
         updated_at
       FROM payroll
-      WHERE user_id = ?
+      WHERE 1=1
     `;
-    const params: unknown[] = [targetUserId];
+    const params: unknown[] = [];
+
+    // For admins, if no specific userId is provided, get all records
+    if (session.userType !== 'ADMIN' || userId) {
+      query += ' AND user_id = ?';
+      params.push(targetUserId);
+    }
 
     if (month) {
       query += ' AND month = ?';

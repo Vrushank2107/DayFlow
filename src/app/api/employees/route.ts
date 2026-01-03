@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { database } from '@/lib/db';
 
-// GET /api/employees - List all employees (admin only)
 export async function GET() {
   try {
     const session = await getSession();
@@ -14,59 +13,48 @@ export async function GET() {
       );
     }
 
-    if (session.userType !== 'ADMIN') {
+    // Check if user is ADMIN or HR (unified access)
+    if (session.userType !== 'ADMIN' && session.userType !== 'HR') {
       return NextResponse.json(
-        { error: 'Admin access only' },
+        { error: 'Admin/HR access only' },
         { status: 403 }
       );
     }
 
+    // Fetch all employees
     const employees = database.prepare(`
       SELECT 
-        user_id,
+        user_id as id,
         name,
         email,
         phone,
-        employee_id,
+        employee_id as employeeId,
         department,
         designation,
-        joining_date,
-        user_type,
+        joining_date as joiningDate,
         address,
         salary,
-        created_at
+        created_at as createdAt
       FROM users
       WHERE user_type = 'EMPLOYEE'
-      ORDER BY name
-    `).all() as Array<{
-      user_id: number;
+      ORDER BY created_at DESC
+    `).all() as {
+      id: number;
       name: string;
       email: string;
       phone: string | null;
-      employee_id: string | null;
+      employeeId: string | null;
       department: string | null;
       designation: string | null;
-      joining_date: string | null;
-      user_type: string;
+      joiningDate: string | null;
       address: string | null;
       salary: number | null;
-      created_at: string;
-    }>;
+      createdAt: string;
+    }[];
 
     return NextResponse.json({
-      employees: employees.map(emp => ({
-        id: emp.user_id,
-        name: emp.name,
-        email: emp.email,
-        phone: emp.phone,
-        employeeId: emp.employee_id,
-        department: emp.department,
-        designation: emp.designation,
-        joiningDate: emp.joining_date,
-        address: emp.address,
-        salary: emp.salary,
-        createdAt: emp.created_at,
-      })),
+      employees,
+      total: employees.length
     });
   } catch (error) {
     console.error('Error fetching employees:', error);
@@ -76,4 +64,3 @@ export async function GET() {
     );
   }
 }
-

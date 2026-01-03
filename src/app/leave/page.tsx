@@ -23,6 +23,8 @@ type LeaveRequest = {
   adminComment: string | null;
   createdAt: string;
   updatedAt: string;
+  employeeName?: string;
+  employeeEmail?: string;
 };
 
 export default function LeavePage() {
@@ -46,13 +48,22 @@ export default function LeavePage() {
   async function fetchLeaves() {
     try {
       setIsLoading(true);
+      console.log('Fetching leaves...');
       const response = await fetch("/api/leave");
+      console.log('Leave response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Leave data:', data);
         setLeaves(data.leaves || []);
+      } else {
+        const errorData = await response.json();
+        console.error('Leave API error:', errorData);
+        toast.error(errorData.error || "Failed to fetch leave requests");
       }
     } catch (error) {
       console.error("Error fetching leaves:", error);
+      toast.error("Failed to fetch leave requests");
     } finally {
       setIsLoading(false);
     }
@@ -63,13 +74,18 @@ export default function LeavePage() {
     setIsSubmitting(true);
 
     try {
+      console.log('Submitting leave request:', formData);
       const response = await fetch("/api/leave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
+      console.log('Leave submission response status:', response.status);
+
       if (response.ok) {
+        const data = await response.json();
+        console.log('Leave submission success:', data);
         toast.success("Leave request submitted successfully!");
         setShowForm(false);
         setFormData({
@@ -81,9 +97,11 @@ export default function LeavePage() {
         fetchLeaves();
       } else {
         const error = await response.json();
+        console.error('Leave submission error:', error);
         toast.error(error.error || "Failed to submit leave request");
       }
     } catch (error) {
+      console.error("Leave submission error:", error);
       toast.error("Failed to submit leave request");
     } finally {
       setIsSubmitting(false);
@@ -273,6 +291,9 @@ export default function LeavePage() {
                           <div className="flex items-center gap-3 mb-2">
                             <Calendar className="h-5 w-5 text-indigo-500" />
                             <div>
+                              {isAdmin && leave.employeeName && (
+                                <p className="font-medium text-sm">{leave.employeeName}</p>
+                              )}
                               <p className="font-medium">
                                 {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
                               </p>
