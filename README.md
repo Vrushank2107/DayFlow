@@ -70,5 +70,92 @@ Dayflow centralizes **employee management, attendance, leave tracking, and payro
 
 ---
 
-## 🗂️ Project Structure
+
+---
+
+## 🌍 Environment Variables
+
+| Variable | Description |
+|--------|-------------|
+| DATABASE_PATH | SQLite DB file path (default: `data/dayflow.db`) |
+| NEXT_PUBLIC_APP_URL | Public app URL |
+
+---
+
+## 📜 Available Scripts
+
+- `npm run dev` – Start dev server
+- `npm run build` – Production build
+- `npm start` – Run production server
+- `npm run lint` – ESLint checks
+
+---
+
+## 🗄️ Database & Data Layer
+
+Uses **SQLite** via `better-sqlite3`.  
+Schema auto-initializes on first run.
+
+**Tables**
+- users
+- attendance
+- leave_requests
+- payroll
+- notifications
+
+---
+
+## 🔌 API Endpoints
+
+- `/api/auth/*`
+- `/api/employees/*`
+- `/api/attendance/*`
+- `/api/leave/*`
+- `/api/payroll/*`
+- `/api/notifications/*`
+
+---
+
+## 🔐 Security & Sessions
+
+- Password hashing with **bcryptjs**
+- Cookie-based session (`session`)
+- Built on Next.js `cookies()` API
+
+> Production tip: use signed/encrypted cookies or a server-side session store.
+
+---
+
+## 🛡️ Access Control
+
+| Role | Permissions |
+|------|-------------|
+| Employee | Own profile, attendance, leave, payroll (read-only) |
+| Admin / HR | Full access to all employees & system data |
+
+---
+
+## 🧠 Development Notes
+
+- Consider **PostgreSQL** for production
+- Add input validation & sanitization
+- Implement logging & monitoring
+- Secure cookies (`httpOnly`, `secure`, `sameSite`)
+
+---
+
+## 🧩 Troubleshooting
+
+- DB not found → create `data/` or set `DATABASE_PATH`
+- Auth issues → clear cookies and re-login
+
+---
+
+## 🌟 Final Note
+
+**Dayflow** is a solid foundation for enterprise-ready HR systems—clean architecture, modern tooling, and scalable design.
+
+> *Manage people better. Flow through work smarter.*  
+> **Welcome to Dayflow 🌊**
+
 
