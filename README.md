@@ -465,7 +465,7 @@ This project is licensed under the ISC License.
 ```
 ISC License
 
-Copyright (c) [Year] [Your Name]
+Copyright (c) 2026 Vrushank Solanki
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
